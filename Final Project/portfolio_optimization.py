@@ -53,40 +53,52 @@ def sortData(matrix):
 
 
 class QLearningAlgorithm:
-	def __init__(self, actions, discount, featureExtractor, explorationProb=0.2):
-	    self.actions = actions
-	    self.discount = discount
-	    self.featureExtractor = featureExtractor
-	    self.explorationProb = explorationProb
-	    self.weights = defaultdict(float)
-	    self.numIters = 0
+    def __init__(self, actions, discount, featureExtractor, explorationProb=0.2):
+        self.actions = actions
+        self.discount = discount
+        self.featureExtractor = featureExtractor
+        self.explorationProb = explorationProb
+        self.weights = defaultdict(float)
+        self.numIters = 0
 
-   	def getQ(self, state, action):
-   		score = 0
-   		for f, v in self.featureExtractor(state, action):
-   			score += self.weights[f]*v
-   		return score
-
-   	def getAction(self, state):
-   		self.numIters += 1
-   		return max((self.getQ(state, action), action) for action in self.actions(state))[1]
-
-   	def getStepsize(self):
-   		return 1.0/math.sqrt(self.numIters)
-   	"""
-   	def incorporateFeedback(self, state, action, reward, newState):
-   		
-   		Vopt = 0
-        if newState != None:
-            Vopt = max((self.getQ(newState, a), a) for a in self.actions(newState))[0]
-
-        prediction = self.getQ(state,action) #float
-        target = reward + self.discount*Vopt #float
-        phi = self.featureExtractor(state, action) #dictionary
-        
+    # Return the Q function associated with the weights and features
+    def getQ(self, state, action):
+        score = 0
         for f, v in self.featureExtractor(state, action):
-            self.weights[f] = self.weights[f] - self.getStepSize()*(prediction - target)*v 
-	"""
+            score += self.weights[f] * v
+        return score
+
+    # This algorithm will produce an action given a state.
+    # Here we use the epsilon-greedy algorithm: with probability
+    # |explorationProb|, take a random action.
+    def getAction(self, state):
+        self.numIters += 1
+        if random.random() < self.explorationProb:
+            return random.choice(self.actions(state))
+        else:
+            return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+
+    # Call this function to get the step size to update the weights.
+    def getStepSize(self):
+        return 1.0 / math.sqrt(self.numIters)
+
+    # We will call this function with (s, a, r, s'), which you should use to update |weights|.
+    # Note that if s is a terminal state, then s' will be None.  Remember to check for this.
+    # You should update the weights using self.getStepSize(); use
+    # self.getQ() to compute the current estimate of the parameters.
+    def incorporateFeedback(self, state, action, reward, newState):
+        # BEGIN_YOUR_CODE (our solution is 12 lines of code, but don't worry if you deviate from this)
+        change = 0
+        if newState != None:
+            change = self.getStepSize() * (self.getQ(state, action) - (reward + self.discount * max(self.getQ(newState, action) for action in self.actions(newState))))
+        for feature in self.featureExtractor(state, action):
+            featureName = feature[0]
+            featureValue = feature[1]
+            change = change * featureValue
+            self.weights[featureName] -= change
+        # END_YOUR_CODE
+
+
 #def featureExtractor(state, action):
 	
 
