@@ -5,10 +5,12 @@ import util, math, random, collections
 
 # The main method
 def main():
-	data = loadCsvData('all_stocks_5yr.csv')
-	data = sortData(data)
-	print len(data)
-	printData(data["T"])
+	stock_dict = loadCsvData('all_stocks_5yr.csv')
+	stock_dict = sortData(stock_dict)
+	#print len(stock_dict)
+	#printData(stock_dict["T"])
+	mdp = util.PortfolioMdp(stock_dict, 7)
+	print mdp.stocks(0)
 
 # Reads a files into a 2d array. There are
 # other ways of doing this (do check out)
@@ -52,12 +54,12 @@ def sortData(matrix):
 
 class QLearningAlgorithm:
 	def __init__(self, actions, discount, featureExtractor, explorationProb=0.2):
-        self.actions = actions
-        self.discount = discount
-        self.featureExtractor = featureExtractor
-        self.explorationProb = explorationProb
-        self.weights = defaultdict(float)
-        self.numIters = 0
+	    self.actions = actions
+	    self.discount = discount
+	    self.featureExtractor = featureExtractor
+	    self.explorationProb = explorationProb
+	    self.weights = defaultdict(float)
+	    self.numIters = 0
 
    	def getQ(self, state, action):
    		score = 0
@@ -71,8 +73,8 @@ class QLearningAlgorithm:
 
    	def getStepsize(self):
    		return 1.0/math.sqrt(self.numIters)
-
-   	def incorporateFeedback(self, state, action, reqard, newState):
+   	"""
+   	def incorporateFeedback(self, state, action, reward, newState):
    		
    		Vopt = 0
         if newState != None:
@@ -84,8 +86,8 @@ class QLearningAlgorithm:
         
         for f, v in self.featureExtractor(state, action):
             self.weights[f] = self.weights[f] - self.getStepSize()*(prediction - target)*v 
-
-def featureExtractor(state, action):
+	"""
+#def featureExtractor(state, action):
 	
 
 
