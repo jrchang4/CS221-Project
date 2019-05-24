@@ -1,6 +1,7 @@
 #import data
 import csv
 import util, math, random, collections
+import numpy as np
 
 
 # The main method
@@ -10,7 +11,9 @@ def main():
 	#print len(stock_dict)
 	#printData(stock_dict["T"])
 	mdp = util.PortfolioMdp(stock_dict, 7)
-	print mdp.stocks(0)
+	stocks_t = mdp.stocks(0)
+	print len(stocks_t)
+
 
 # Reads a files into a 2d array. There are
 # other ways of doing this (do check out)
@@ -43,11 +46,12 @@ def sortData(matrix):
 	previous_company = "default"
 	for row in matrix:
 		company = row[6]
-		if company != previous_company:
+		if company != previous_company and row[0] == '2013-02-08':
 			sorted_data[company] = [[row[i] for i in range(6)]]
 			previous_company = company
 		else:
-			sorted_data[company].append([row[i] for i in range(6)])
+			if company in sorted_data:
+					sorted_data[company].append([row[i] for i in range(6)])
 
 	return sorted_data
 
