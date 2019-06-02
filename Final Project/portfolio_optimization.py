@@ -195,10 +195,11 @@ class QLearningAlgorithm:
 	# |explorationProb|, take a random action.
 	def getAction(self, state):
 		self.numIters += 1
-		if random.random() < self.explorationProb:
-			return random.choice(self.actions(state))
-		else:
-			return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+		
+		# if random.random() < self.explorationProb:
+		# 	return random.choice(self.actions(state))
+		# else:
+		return max((self.getQ(state, action), action) for action in self.actions(state))[1]
 
 	# Call this function to get the step size to update the weights.
 	def getStepSize(self):
