@@ -220,8 +220,23 @@ class QLearningAlgorithm:
 			self.weights[featureName] -= change
 		# END_YOUR_CODE
 
-
-#def featureExtractor(state, action):
+def featureExtractor(state, action):
+	features = []
+	standardDevs = []
+	numStocks = len(state[0])
+	for stockNumber in range(numStocks):
+		variance = 1 #temporary until we figure out how to calculate it
+		sumTerm1 = sum([(state[1][stock] ** 2) * variance for stock in state[1]])
+		term2 = []
+		for otherStockNumber in range(numStocks):
+			if (stockNumber != otherStockNumber):
+				coVariance = 1 # temporary until we figure out how to calculate it
+				term2.append(state[1][stockNumber] * state[1][otherStockNumber] * coVariance)
+		sumTerm2 = sum(term2)
+		standardDev = math.sqrt(float(sumTerm1) + float(term2))
+		standardDevs.append(standardDev)
+	features.append(standardDevs)
+	return features
 	
 
 
