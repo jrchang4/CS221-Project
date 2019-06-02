@@ -111,3 +111,35 @@ class PortfolioMdp:
 	                    self.states.add(newState)
 	                    queue.append(newState)
 
+# Problem 4c: features for Q-learning.
+
+# You should return a list of (feature key, feature value) pairs.
+# (See identityFeatureExtractor() above for a simple example.)
+# Include the following features in the list you return:
+# -- Indicator for the action and the current total (1 feature).
+# -- Indicator for the action and the presence/absence of each face value in the deck.
+#       Example: if the deck is (3, 4, 0, 2), then your indicator on the presence of each card is (1, 1, 0, 1)
+#       Note: only add this feature if the deck is not None.
+# -- Indicators for the action and the number of cards remaining with each face value (len(counts) features).
+#       Note: only add these features if the deck is not None.
+	def portfolioFeatureExtractor(state, action):
+		#state (stock data for all days, allocation, window, capital)
+
+	    features = []
+
+	    # Standard Deviation
+	    standardDevs = []
+	    for i in range(500):
+	    	stockMeanData = [stock[t][i] for t in range(500)]
+	    	stdDev = numpy.std(stockMeanData)
+	    	standardDevs.append(stdDev)
+
+	    stdDevFeature = tuple([action, tuple(standardDevs)])
+	    features.append(tuple([stdDevFeature, 1]))
+	    features.append(tuple([indicator1, 1]))
+	    return features
+
+
+
+
+
