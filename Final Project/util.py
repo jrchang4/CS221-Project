@@ -80,7 +80,7 @@ class PortfolioMdp:
 		new_data = [self.stocks(t) for t in range(new_time - self.N, new_time)]
 		curr_capital = state[3]
 		allocation = state[1]
-		print "Allocation sum: {}".format(sum(allocation.values()))
+		#print "Allocation sum: {}".format(sum(allocation.values()))
 		
 		# previous_reward = state[4]
 
@@ -91,7 +91,7 @@ class PortfolioMdp:
 
 				for stock in stocks:
 					allocation[stock[6]] += curr_capital * 0.02
-					print "Allocation sum: {}".format(sum(allocation.values()))
+					#print "Allocation sum: {}".format(sum(allocation.values()))
 
 					#print(sum(allocation.values()))
 					for stock_name in state[0][-1]:
@@ -253,11 +253,11 @@ class PortfolioMdp:
 		#print "Feature value: {}". format(featureValue)
 
 		remaining_capital = newState[3]
-		print "Remaining capital: {}".format(remaining_capital)
-		print "Allocation: {}".format(sum(allocation.values()))
+		#print "Remaining capital: {}".format(remaining_capital)
+		#print "Allocation: {}".format(sum(allocation.values()))
 
 		momentum_value = self.calcReward(remaining_capital, allocation)
-		print "Momentum: {}".format(momentum_value)
+		#print "Momentum: {}".format(momentum_value)
 
 		# Industry Type
 
@@ -311,7 +311,7 @@ class PortfolioMdp:
 		totalFeatureValue = 10*stdValue + industryValue
 		features.append((featureIndustryKey, totalFeatureValue))
 		
-		print "Features: {}".format(totalFeatureValue)
+		#print "Features: {}".format(totalFeatureValue)
 		return features
 
 
@@ -322,7 +322,7 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
 	totalRewards = []  # The rewards we get on each trial
 	totalPortfolioValues = []
 	for trial in range(numTrials):
-		print "Trial: {}".format(trial + 1)
+		#print "Trial: {}".format(trial + 1)
 		state = mdp.startState()
 		sequence = [state]
 		totalDiscount = 1
@@ -332,9 +332,9 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
 		for i in range(maxIterations):
 			counter += 1
 			action = rl.getAction(state)
-			print action
+			#print action
 			transitions = mdp.succStates(state, action)
-			print "num transitions: {}".format(len(transitions))
+			#print "num transitions: {}".format(len(transitions))
 			if sort: transitions = sorted(transitions)
 			if len(transitions) == 0:
 				rl.incorporateFeedback(state, action, 0, None)
@@ -349,7 +349,7 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
 
 			rl.incorporateFeedback(state, action, reward, newState)
 			cummGainLoss = (reward - mdp.capital)
-			print state[2]
+			print "Day: {}".format(state[2])
 			# print action
 			# print "Portfolio value {}" .format(reward)
 			# print "Remaining capital {}". format(state[3])

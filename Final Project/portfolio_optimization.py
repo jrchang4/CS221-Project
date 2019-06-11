@@ -12,7 +12,6 @@ def main():
 	stock_dict = sortData(data)
 
 	sp500data = load500Data('sp500_2015.csv')[:30]
-	print len(sp500data)
 	sp500dates = [row[0] for row in sp500data]
 	sp500prices = [row[1] for row in sp500data]
 
@@ -21,12 +20,10 @@ def main():
 	print "Computing States"
 	dates,_ = mdp.computeStates()
 	dates = [d - 4 for d in dates]
-	print len(dates)
 	print "Executing Q Learning"
 	rl = QLearningAlgorithm(mdp.actions, mdp.discount(1), mdp.portfolioFeatureExtractor)
 	print "Simulating"
 	end_value, gain, values = (util.simulate(mdp,rl,1))
-	print len(values)
 	print "Portfolio is worth {} and gained {}%". format(end_value, gain)
 
 
@@ -240,9 +237,9 @@ class QLearningAlgorithm:
 		for f, v in self.featureExtractor(state, action):
 			#print "V:{}" .format(v)
 			score += self.weights[str(f)] * v
-			print "weights : {}" .format(self.weights[str(f)])
-			print "Score:" + str(score)
-		print "Action: {}, score: {}" .format(action, score)
+			#print "weights : {}" .format(self.weights[str(f)])
+			#print "Score:" + str(score)
+		#print "Action: {}, score: {}" .format(action, score)
 		return score
 
 	# This algorithm will produce an action given a state.
@@ -255,7 +252,7 @@ class QLearningAlgorithm:
 		# 	return random.choice(self.actions(state))
 		# else:
 		possible_states = [(self.getQ(state, action), action) for action in self.actions(state)]
-		print possible_states 
+		#print possible_states 
 		best_action = max((self.getQ(state, action), action) for action in self.actions(state))
 		if best_action[0] == 0.0:
 			return 'Buy'
