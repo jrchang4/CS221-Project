@@ -2,6 +2,7 @@
 import csv
 import util, math, random, collections
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # The main method
@@ -9,23 +10,51 @@ def main():
 	data = loadCsvData('all_stocks_5yr.csv')
 	data = data[1:]
 	stock_dict = sortData(data)
-	prev_stock_dict = sortPrevData(data)
-	#print prev_stock_dict
-	#print len(stock_dict)
-	#print len(stock_dict["T"])
-	mdp = util.PortfolioMdp(stock_dict, 7, 100)
-	#print stock_dict['FIS'][251][4]
-	#print mdp.startState()
+
+	sp500data = load500Data('sp500_2015.csv')[:30]
+	print len(sp500data)
+	sp500dates = [row[0] for row in sp500data]
+	sp500prices = [row[1] for row in sp500data]
+
+	print "Computing MDP"
+	mdp = util.PortfolioMdp(stock_dict, 5, 5)
+	print "Computing States"
+	dates,_ = mdp.computeStates()
+	dates = [d - 4 for d in dates]
+	print len(dates)
+	print "Executing Q Learning"
+	rl = QLearningAlgorithm(mdp.actions, mdp.discount(1), mdp.portfolioFeatureExtractor)
+	print "Simulating"
+	end_value, gain, values = (util.simulate(mdp,rl,1))
+	print len(values)
+	print "Portfolio is worth {} and gained {}%". format(end_value, gain)
+
+
+
+
+
+	generateGraph(dates, values, sp500dates, sp500prices)
 	
+
+def generateGraph(x1, y1, x2, y2):
+	plt.plot(x1, y1, label = 'Optimal Portfolio')
+	plt.plot(x1, y2, label = 'S&P 500')
+	plt.ylabel('Portfolio Value')
+	plt.xlabel('Days')
+	plt.title('Optimal Portfolio vs S&P 500 in January 2015')
+	plt.legend()
+	plt.show()
+
+	
+	
+	#print generateRandom(stock_dict, 10)
+def baseline():
 	random_selection = []
 	for _ in range(20):
 		random_selection.append(generateRandom(stock_dict, 10))
 
 	print np.mean(random_selection)
 	print generateLowRisk(stock_dict,10)
-	
-	
-	#print generateRandom(stock_dict, 10)
 
 def generateRandom(stock_dict, num_stocks):
 	companies = stock_dict.keys()
@@ -116,14 +145,35 @@ def loadCsvData(fileName):
 	# open a file
 	with open(fileName) as f:
 		reader = csv.reader(f)
-
 		# loop over each row in the file
 		for row in reader:
-
 			# cast each value to a float
 			doubleRow = []
-			for value in row:
-				doubleRow.append(value)
+			for i in range(len(row)):
+				if i == 0 or i == 6 or row[0] == 'date':
+					doubleRow.append(row[i])
+				else:
+					doubleRow.append(float(row[i]))
+
+			# store the row into our matrix
+			matrix.append(doubleRow)
+	return matrix
+
+def load500Data(fileName):
+	matrix = []
+	# open a file
+	with open(fileName) as f:
+		reader = csv.reader(f)
+		# loop over each row in the file
+		for row in reader:
+			# cast each value to a float
+			doubleRow = []
+			for i in range(len(row)):
+				if i == 0:
+					doubleRow.append(row[i])
+				else:
+					value = float(row[i])
+					doubleRow.append(value)
 
 			# store the row into our matrix
 			matrix.append(doubleRow)
@@ -140,14 +190,15 @@ def sortData(matrix):
 	matrix = np.array(matrix)
 	for row in matrix:
 		company = row[6]
-		if row[0][:4] == '2015':
+		if row[0][-4:] == '2015':
 			if company != previous_company:
-				sorted_data[company] = [[row[i] for i in range(6)]]
+				sorted_data[company] = [[row[i] for i in range(7)]]
 				previous_company = company
 			else:
 				if company in sorted_data:
-						sorted_data[company].append([row[i] for i in range(6)])
+						sorted_data[company].append([row[i] for i in range(7)])
 
+	print len(sorted_data['T'])
 	sorted_data_trimmed = {}
 	for data in sorted_data:
 		if len(sorted_data[data]) == 252:
@@ -180,14 +231,18 @@ class QLearningAlgorithm:
 		self.actions = actions
 		self.discount = discount
 		self.featureExtractor = featureExtractor
-		self.weights = defaultdict(float)
+		self.weights = collections.defaultdict(lambda: 1.0)
 		self.numIters = 0
 
 	# Return the Q function associated with the weights and features
 	def getQ(self, state, action):
 		score = 0
 		for f, v in self.featureExtractor(state, action):
-			score += self.weights[f] * v
+			#print "V:{}" .format(v)
+			score += self.weights[str(f)] * v
+			print "weights : {}" .format(self.weights[str(f)])
+			print "Score:" + str(score)
+		print "Action: {}, score: {}" .format(action, score)
 		return score
 
 	# This algorithm will produce an action given a state.
@@ -199,7 +254,12 @@ class QLearningAlgorithm:
 		# if random.random() < self.explorationProb:
 		# 	return random.choice(self.actions(state))
 		# else:
-		return max((self.getQ(state, action), action) for action in self.actions(state))[1]
+		possible_states = [(self.getQ(state, action), action) for action in self.actions(state)]
+		print possible_states 
+		best_action = max((self.getQ(state, action), action) for action in self.actions(state))
+		if best_action[0] == 0.0:
+			return 'Buy'
+		return best_action[1]
 
 	# Call this function to get the step size to update the weights.
 	def getStepSize(self):
@@ -214,11 +274,16 @@ class QLearningAlgorithm:
 		change = 0
 		if newState != None:
 			change = self.getStepSize() * (self.getQ(state, action) - (reward + self.discount * max(self.getQ(newState, action) for action in self.actions(newState))))
+			#print "change {}".format(change)
 		for feature in self.featureExtractor(state, action):
 			featureName = feature[0]
 			featureValue = feature[1]
+
 			change = change * featureValue
-			self.weights[featureName] -= change
+			#print "feature value {}".format(featureValue)
+			#print "change2 {}".format(change)
+			self.weights[str(featureName)] -= change
+			#print "weights 2: {}".format(self.weights[str(featureName)])
 		# END_YOUR_CODE
 
 def featureExtractor(state, action):
